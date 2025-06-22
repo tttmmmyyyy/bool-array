@@ -1,0 +1,34 @@
+module Test;
+
+import BoolArray;
+
+test : IO ();
+test = (
+    let ba = BoolArray::make(3);
+
+    assert_eq(|_|"", ba.@(0), false);;
+    assert_eq(|_|"", ba.@(1), false);;
+    assert_eq(|_|"", ba.@(2), false);;
+
+    let ba = ba.fill_true;
+    assert_eq(|_|"", ba.@(0), true);;
+    assert_eq(|_|"", ba.@(1), true);;
+    assert_eq(|_|"", ba.@(2), true);;
+
+    let ba = ba.set(0, false);
+    assert_eq(|_|"", ba.@(0), false);;
+    assert_eq(|_|"", ba.@(1), true);;
+    assert_eq(|_|"", ba.@(2), true);;
+
+    let ba = ba.set(1, false);
+    assert_eq(|_|"", ba.@(0), false);;
+    assert_eq(|_|"", ba.@(1), false);;
+    assert_eq(|_|"", ba.@(2), true);;
+
+    let ba = ba.set(2, false);
+    assert_eq(|_|"", ba.@(0), false);;
+    assert_eq(|_|"", ba.@(1), false);;
+    assert_eq(|_|"", ba.@(2), false);;
+
+    pure()
+);
