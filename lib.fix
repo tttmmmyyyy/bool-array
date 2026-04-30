@@ -12,7 +12,7 @@ namespace BoolArray {
     // - `self` : The BoolArray instance.
     get_size : BoolArray -> I64;
     get_size = |self| (
-        self.@buf.get_size * 64_I64
+        self.@buf.@size * 64_I64
     );
 
     // Creates a new BoolArray.
@@ -32,7 +32,7 @@ namespace BoolArray {
     fill_true : BoolArray -> BoolArray;
     fill_true = |self| (
         let buf = self.@buf;
-        let buf = Iterator::range(0, buf.get_size).fold(buf, |i, buf|
+        let buf = Iterator::range(0, buf.@size).fold(buf, |i, buf|
             buf.set(i, 0xFFFFFFFFFFFFFFFF_U64)
         );
         BoolArray { buf: buf }
@@ -50,7 +50,7 @@ namespace BoolArray {
         let buf_index = index / 64;
         let bit_index = index % 64;
         let flags = buf.@(buf_index);
-        let mask = 1_U64.shift_left(bit_index.to_U64);
+        let mask = 1_U64.shift_left(bit_index.u64);
         let flags = if value {
             flags.bit_or(mask)
         } else {
@@ -70,7 +70,7 @@ namespace BoolArray {
         let buf_index = index / 64;
         let bit_index = index % 64;
         let flags = self.@buf.@(buf_index);
-        let mask = 1_U64.shift_left(bit_index.to_U64);
+        let mask = 1_U64.shift_left(bit_index.u64);
         flags.bit_and(mask) != 0_U64
     );
 }

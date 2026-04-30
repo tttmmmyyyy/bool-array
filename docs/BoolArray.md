@@ -1,6 +1,6 @@
 # BoolArray
 
-Defined in bool-array@0.1.0
+Defined in bool-array@0.1.2
 
 ## Values
 
