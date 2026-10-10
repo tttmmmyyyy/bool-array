@@ -69,6 +69,15 @@ Defined as: `type BoolArray = unbox struct { ...fields... }`
 
 BoolArray is a structure that represents a sequence of boolean values, storing each value in 1 bit.
 
+##### Examples
+
+```fix
+let bits = BoolArray::make(100).set(3, true);
+assert(|_|"", bits.@(3));;
+assert(|_|"", !bits.set(3, false).@(3));;
+assert_eq(|_|"", bits.get_size, 128)
+```
+
 ##### field `buf`
 
 Type: `Std::Array Std::U64`
