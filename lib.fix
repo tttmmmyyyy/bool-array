@@ -34,7 +34,7 @@ namespace BoolArray {
     // - `value` : The value of every element
     fill : I64 -> Bool -> BoolArray;
     fill = |size, value| (
-        if size < 0 { undefined("[BoolArray::fill] The size " + size.to_string + " is negative.") };
+        if size < 0 { undefined("[BoolArray::fill] The size is negative.") };
         let words = (size + 63).shift_right(6);
         if !value { BoolArray { _buf : Array::fill(words, 0_U64), _size : size } };
         let buf = Array::fill(words, 0xFFFFFFFFFFFFFFFF_U64);
@@ -51,7 +51,7 @@ namespace BoolArray {
     // - `self` : The target BoolArray
     set : I64 -> Bool -> BoolArray -> BoolArray;
     set = |index, value, self| (
-        if !self._contains_index(index) { self._out_of_range("set", index) };
+        if !self._contains_index(index) { undefined("[BoolArray::set] The index is out of range.") };
         let bit = index.bit_and(63);
         self.mod__buf(Array::mod(index.shift_right(6), _assign_bit(bit, value)))
     );
@@ -63,7 +63,7 @@ namespace BoolArray {
     // - `self` : The target BoolArray
     @ : I64 -> BoolArray -> Bool;
     @ = |index, self| (
-        if !self._contains_index(index) { self._out_of_range("@", index) };
+        if !self._contains_index(index) { undefined("[BoolArray::@] The index is out of range.") };
         _read_bit(index.bit_and(63), self.@_buf.@(index.shift_right(6)))
     );
 
@@ -74,18 +74,6 @@ namespace BoolArray {
     // - `self` : The target BoolArray
     _contains_index : I64 -> BoolArray -> Bool;
     _contains_index = |index, self| 0 <= index && index < self.@_size;
-
-    // Stops the program, reporting that `index` is out of range for the BoolArray.
-    //
-    // # Parameters
-    // - `name` : The name of the function that got the index
-    // - `index` : The index out of range
-    // - `self` : The target BoolArray
-    _out_of_range : String -> I64 -> BoolArray -> a;
-    _out_of_range = |name, index, self| undefined(
-        "[BoolArray::" + name + "] The index " + index.to_string
-        + " is out of range for the size " + self.@_size.to_string + "."
-    );
 
     // The word whose `count` low bits are 1 and the other bits are 0.
     //
@@ -119,7 +107,7 @@ impl BoolArray : Indexable {
     type Elem BoolArray = Bool;
     type Index BoolArray = I64;
     act_at_index = |index, f, self| (
-        if !self._contains_index(index) { self._out_of_range("act_at_index", index) };
+        if !self._contains_index(index) { undefined("[BoolArray::act_at_index] The index is out of range.") };
         let bit = index.bit_and(63);
         self.act__buf(Array::act(index.shift_right(6), |word|
             f(_read_bit(bit, word)).map(|value| _assign_bit(bit, value, word))
