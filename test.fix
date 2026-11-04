@@ -7,6 +7,7 @@ test = (
     test_fill;;
     test_set;;
     test_indexable;;
+    test_deprecated;;
     pure()
 );
 
@@ -57,5 +58,20 @@ test_indexable = (
     let res = ba[99].iact(|b| if b { some(false) } else { none() });
     assert_eq(|_|"iact writes the new value", res.as_some.@(99), false);;
     assert_eq(|_|"iact keeps the failure of the functor", ba[0].iact(|b| if b { some(false) } else { none() }).is_none, true);;
+    pure()
+);
+
+test_deprecated : IO ();
+test_deprecated = (
+    // `make` rounds the size up to a multiple of 64, as it did before `fill` replaced it.
+    let ba = BoolArray::make(100);
+    assert_eq(|_|"make size", ba.get_size, 128);;
+    assert_eq(|_|"make all false", range(0, 128).filter(|i| ba.@(i)).get_size, 0);;
+    assert_eq(|_|"make(0) size", BoolArray::make(0).get_size, 0);;
+    assert_eq(|_|"make(64) size", BoolArray::make(64).get_size, 64);;
+    let ba = ba.set(127, true);
+    assert_eq(|_|"set the last of the rounded size", ba.@(127), true);;
+    let ba = ba.fill_true;
+    assert_eq(|_|"fill_true", range(0, 128).filter(|i| ba.@(i)).get_size, 128);;
     pure()
 );

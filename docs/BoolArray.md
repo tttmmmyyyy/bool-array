@@ -38,6 +38,42 @@ Creates a BoolArray of the specified size, every element of which is the specifi
 - `size` : The number of elements. If negative, the program aborts.
 - `value` : The value of every element
 
+#### fill_true
+
+**Deprecated**: Use `BoolArray::fill(size, true)` instead.
+
+Type: `BoolArray::BoolArray -> BoolArray::BoolArray`
+
+Deprecated. Sets every element to true.
+
+##### Parameters
+
+- `self` : The target BoolArray
+
+#### get_size
+
+**Deprecated**: Use `BoolArray::@size` instead. It returns the size given when the BoolArray was created.
+
+Type: `BoolArray::BoolArray -> Std::I64`
+
+Deprecated alias for `BoolArray::@size`.
+
+##### Parameters
+
+- `self` : The target BoolArray
+
+#### make
+
+**Deprecated**: Use `BoolArray::fill(size, false)` instead. `make` rounds the size up to a multiple of 64, and `fill` keeps the size as given.
+
+Type: `Std::I64 -> BoolArray::BoolArray`
+
+Deprecated. Creates a BoolArray whose elements are all false, rounding the size up to a multiple of 64.
+
+##### Parameters
+
+- `size` : The number of elements before the rounding. If negative, the program aborts.
+
 #### set
 
 Type: `Std::I64 -> Std::Bool -> BoolArray::BoolArray -> BoolArray::BoolArray`

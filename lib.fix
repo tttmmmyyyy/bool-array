@@ -104,6 +104,33 @@ namespace BoolArray {
         let mask = 1_U64.shift_left(bit.u64);
         if value { word.bit_or(mask) } else { word.bit_and(mask.bit_not) }
     );
+
+    // Deprecated alias for `BoolArray::@size`.
+    //
+    // # Parameters
+    // - `self` : The target BoolArray
+    get_size : BoolArray -> I64;
+    get_size = @size;
+    DEPRECATED[get_size, "Use `BoolArray::@size` instead. It returns the size given when the BoolArray was created."];
+
+    // Deprecated. Creates a BoolArray whose elements are all false, rounding the size up to a multiple of 64.
+    //
+    // # Parameters
+    // - `size` : The number of elements before the rounding. If negative, the program aborts.
+    make : I64 -> BoolArray;
+    make = |size| (
+        if size < 0 { undefined("[BoolArray::make] The size is negative.") };
+        fill((size + 63).bit_and(-64), false)
+    );
+    DEPRECATED[make, "Use `BoolArray::fill(size, false)` instead. `make` rounds the size up to a multiple of 64, and `fill` keeps the size as given."];
+
+    // Deprecated. Sets every element to true.
+    //
+    // # Parameters
+    // - `self` : The target BoolArray
+    fill_true : BoolArray -> BoolArray;
+    fill_true = |self| fill(self.@size, true);
+    DEPRECATED[fill_true, "Use `BoolArray::fill(size, true)` instead."];
 }
 
 impl BoolArray : Indexable {
