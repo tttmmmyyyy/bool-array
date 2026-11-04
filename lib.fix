@@ -105,13 +105,13 @@ namespace BoolArray {
         if value { word.bit_or(mask) } else { word.bit_and(mask.bit_not) }
     );
 
-    // Deprecated alias for `BoolArray::@size`.
+    // Deprecated. Gets the number of elements rounded up to a multiple of 64.
     //
     // # Parameters
     // - `self` : The target BoolArray
     get_size : BoolArray -> I64;
-    get_size = @size;
-    DEPRECATED[get_size, "Use `BoolArray::@size` instead. It returns the size given when the BoolArray was created."];
+    get_size = |self| self.@_buf.@size * 64;
+    DEPRECATED[get_size, "Use `BoolArray::@size` instead. Unlike `get_size`, which rounds the number of elements up to a multiple of 64, `@size` returns the size given when the BoolArray was created."];
 
     // Deprecated. Creates a BoolArray whose elements are all false, rounding the size up to a multiple of 64.
     //

@@ -71,6 +71,9 @@ test_deprecated = (
     assert_eq(|_|"make(64) size", BoolArray::make(64).get_size, 64);;
     let ba = ba.set(127, true);
     assert_eq(|_|"set the last of the rounded size", ba.@(127), true);;
+    // `get_size` rounds up the size of a BoolArray made by `fill` too, and `@size` does not.
+    assert_eq(|_|"get_size of fill", BoolArray::fill(100, false).get_size, 128);;
+    assert_eq(|_|"@size of fill", BoolArray::fill(100, false).@size, 100);;
     let ba = ba.fill_true;
     assert_eq(|_|"fill_true", range(0, 128).filter(|i| ba.@(i)).get_size, 128);;
     pure()

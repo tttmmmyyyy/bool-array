@@ -52,11 +52,11 @@ Deprecated. Sets every element to true.
 
 #### get_size
 
-**Deprecated**: Use `BoolArray::@size` instead. It returns the size given when the BoolArray was created.
+**Deprecated**: Use `BoolArray::@size` instead. Unlike `get_size`, which rounds the number of elements up to a multiple of 64, `@size` returns the size given when the BoolArray was created.
 
 Type: `BoolArray::BoolArray -> Std::I64`
 
-Deprecated alias for `BoolArray::@size`.
+Deprecated. Gets the number of elements rounded up to a multiple of 64.
 
 ##### Parameters
 
