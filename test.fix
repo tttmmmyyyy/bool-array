@@ -4,31 +4,56 @@ import BoolArray;
 
 test : IO ();
 test = (
-    let ba = BoolArray::make(3);
+    test_fill;;
+    test_set;;
+    test_indexable;;
+    pure()
+);
 
-    assert_eq(|_|"", ba.@(0), false);;
-    assert_eq(|_|"", ba.@(1), false);;
-    assert_eq(|_|"", ba.@(2), false);;
+// The sizes the tests try: the empty array, and the sizes around the boundaries of the words.
+sizes : Array I64;
+sizes = [0, 1, 63, 64, 65, 100, 127, 128, 129];
 
-    let ba = ba.fill_true;
-    assert_eq(|_|"", ba.@(0), true);;
-    assert_eq(|_|"", ba.@(1), true);;
-    assert_eq(|_|"", ba.@(2), true);;
+test_fill : IO ();
+test_fill = (
+    sizes.to_iter.fold_m((), |n, _| (
+        [false, true].to_iter.fold_m((), |value, _| (
+            let ba = BoolArray::fill(n, value);
+            let name = "fill(" + n.to_string + ", " + value.to_string + ")";
+            assert_eq(|_|name + ".@size", ba.@size, n);;
+            range(0, n).fold_m((), |i, _| assert_eq(|_|name + ".@(" + i.to_string + ")", ba.@(i), value));;
+            // The bits past the last element are 0.
+            let words = ba.@_buf;
+            let ones = range(0, words.@size * 64).filter(|i| words.@(i / 64).shift_right((i % 64).u64).bit_and(1_U64) != 0_U64).get_size;
+            assert_eq(|_|name + " ones", ones, if value { n } else { 0 })
+        ))
+    ))
+);
 
-    let ba = ba.set(0, false);
-    assert_eq(|_|"", ba.@(0), false);;
-    assert_eq(|_|"", ba.@(1), true);;
-    assert_eq(|_|"", ba.@(2), true);;
+test_set : IO ();
+test_set = (
+    sizes.to_iter.fold_m((), |n, _| (
+        // Set the elements whose indices are multiples of 3, then clear the multiples of 6.
+        let ba = range_step(0, n, 3).fold(BoolArray::fill(n, false), |i, ba| ba.set(i, true));
+        let ba = range_step(0, n, 6).fold(ba, |i, ba| ba.set(i, false));
+        range(0, n).fold_m((), |i, _| (
+            let expected = i % 3 == 0 && i % 6 != 0;
+            assert_eq(|_|"set " + n.to_string + " " + i.to_string, ba.@(i), expected)
+        ))
+    ))
+);
 
-    let ba = ba.set(1, false);
-    assert_eq(|_|"", ba.@(0), false);;
-    assert_eq(|_|"", ba.@(1), false);;
-    assert_eq(|_|"", ba.@(2), true);;
-
-    let ba = ba.set(2, false);
-    assert_eq(|_|"", ba.@(0), false);;
-    assert_eq(|_|"", ba.@(1), false);;
-    assert_eq(|_|"", ba.@(2), false);;
-
+test_indexable : IO ();
+test_indexable = (
+    let ba = BoolArray::fill(100, false);
+    let ba = ba[70].iset(true);
+    assert_eq(|_|"iset", ba[70].iget, true);;
+    assert_eq(|_|"iset leaves the neighbours", ba.@(69) || ba.@(71), false);;
+    let ba = ba[70].imod(not)[99].imod(not);
+    assert_eq(|_|"imod 70", ba.@(70), false);;
+    assert_eq(|_|"imod 99", ba.@(99), true);;
+    let res = ba[99].iact(|b| if b { some(false) } else { none() });
+    assert_eq(|_|"iact writes the new value", res.as_some.@(99), false);;
+    assert_eq(|_|"iact keeps the failure of the functor", ba[0].iact(|b| if b { some(false) } else { none() }).is_none, true);;
     pure()
 );
