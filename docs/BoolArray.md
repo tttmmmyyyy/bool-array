@@ -1,6 +1,6 @@
 # BoolArray
 
-Defined in bool-array@0.1.2
+Defined in bool-array@0.2.0
 
 ## Values
 
@@ -10,53 +10,44 @@ Defined in bool-array@0.1.2
 
 Type: `Std::I64 -> BoolArray::BoolArray -> Std::Bool`
 
-Gets the bit at the specified index.
+Gets the element at the specified index.
 
 ##### Parameters
 
-- `index` : The index of the bit to get
+- `index` : The index of the element to get. If out of range, the program aborts.
 - `self` : The target BoolArray
 
-#### fill_true
-
-Type: `BoolArray::BoolArray -> BoolArray::BoolArray`
-
-Fills the specified BoolArray with true values.
-
-##### Parameters
-
-- `self` : The target BoolArray
-
-#### get_size
+#### @size
 
 Type: `BoolArray::BoolArray -> Std::I64`
 
-Gets the size of the BoolArray.
+Gets the number of elements of the BoolArray.
 
 ##### Parameters
 
-- `self` : The BoolArray instance.
+- `self` : The target BoolArray
 
-#### make
+#### fill
 
-Type: `Std::I64 -> BoolArray::BoolArray`
+Type: `Std::I64 -> Std::Bool -> BoolArray::BoolArray`
 
-Creates a new BoolArray.
+Creates a BoolArray of the specified size, every element of which is the specified value.
 
 ##### Parameters
 
-- `size` : The size of the BoolArray in bits. It will be rounded up to the nearest multiple of 64.
+- `size` : The number of elements. If negative, the program aborts.
+- `value` : The value of every element
 
 #### set
 
 Type: `Std::I64 -> Std::Bool -> BoolArray::BoolArray -> BoolArray::BoolArray`
 
-Sets the bit at the specified index.
+Sets the element at the specified index.
 
 ##### Parameters
 
-- `index` : The index of the bit to set
-- `value` : The value to set (true or false)
+- `index` : The index of the element to set. If out of range, the program aborts.
+- `value` : The value to set
 - `self` : The target BoolArray
 
 ## Types and aliases
@@ -69,19 +60,19 @@ Defined as: `type BoolArray = unbox struct { ...fields... }`
 
 BoolArray is a structure that represents a sequence of boolean values, storing each value in 1 bit.
 
+`BoolArray` implements `Indexable`, so an element can also be read and written by the index syntax.
+
 ##### Examples
 
 ```fix
-let bits = BoolArray::make(100).set(3, true);
+let bits = BoolArray::fill(100, false).set(3, true);
 assert(|_|"", bits.@(3));;
-assert(|_|"", !bits.set(3, false).@(3));;
-assert_eq(|_|"", bits.get_size, 128)
+assert(|_|"", !bits[3].imod(not).@(3));;
+assert_eq(|_|"", bits.@size, 100)
 ```
-
-##### field `buf`
-
-Type: `Std::Array Std::U64`
 
 ## Traits and aliases
 
 ## Trait implementations
+
+### impl `BoolArray::BoolArray : Std::Indexable`

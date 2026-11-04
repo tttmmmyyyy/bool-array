@@ -30,7 +30,7 @@ namespace BoolArray {
     // Creates a BoolArray of the specified size, every element of which is the specified value.
     //
     // # Parameters
-    // - `size` : The number of elements
+    // - `size` : The number of elements. If negative, the program aborts.
     // - `value` : The value of every element
     fill : I64 -> Bool -> BoolArray;
     fill = |size, value| (
@@ -46,7 +46,7 @@ namespace BoolArray {
     // Sets the element at the specified index.
     //
     // # Parameters
-    // - `index` : The index of the element to set
+    // - `index` : The index of the element to set. If out of range, the program aborts.
     // - `value` : The value to set
     // - `self` : The target BoolArray
     set : I64 -> Bool -> BoolArray -> BoolArray;
@@ -59,7 +59,7 @@ namespace BoolArray {
     // Gets the element at the specified index.
     //
     // # Parameters
-    // - `index` : The index of the element to get
+    // - `index` : The index of the element to get. If out of range, the program aborts.
     // - `self` : The target BoolArray
     @ : I64 -> BoolArray -> Bool;
     @ = |index, self| (
@@ -68,6 +68,9 @@ namespace BoolArray {
     );
 
     // Checks whether `index` is the index of an element of the BoolArray.
+    //
+    // The callers stop the program on a failed check with a literal message. With a message built at
+    // run time, `--no-runtime-check` leaves the check in the code (tttmmmyyyy/fixlang#993).
     //
     // # Parameters
     // - `index` : The index to check
