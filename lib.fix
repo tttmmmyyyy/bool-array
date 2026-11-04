@@ -2,83 +2,145 @@ module BoolArray;
 
 // BoolArray is a structure that represents a sequence of boolean values, storing each value in 1 bit.
 //
+// `BoolArray` implements `Indexable`, so an element can also be read and written by the index syntax.
+//
 // # Examples
 // ```fix
-// let bits = BoolArray::make(100).set(3, true);
+// let bits = BoolArray::fill(100, false).set(3, true);
 // assert(|_|"", bits.@(3));;
-// assert(|_|"", !bits.set(3, false).@(3));;
-// assert_eq(|_|"", bits.get_size, 128)
+// assert(|_|"", !bits[3].imod(not).@(3));;
+// assert_eq(|_|"", bits.@size, 100)
 // ```
 type BoolArray = struct {
-    buf: Array U64
+    // The bits, 64 to a word: the bit at index `i` is bit `i % 64` of the word `i / 64`.
+    // The bits at index `_size` or more are 0.
+    _buf : Array U64,
+    // The number of elements.
+    _size : I64
 };
 
 namespace BoolArray {
-    // Gets the size of the BoolArray.
+    // Gets the number of elements of the BoolArray.
     //
     // # Parameters
-    // - `self` : The BoolArray instance.
-    get_size : BoolArray -> I64;
-    get_size = |self| (
-        self.@buf.@size * 64_I64
+    // - `self` : The target BoolArray
+    @size : BoolArray -> I64;
+    @size = |self| self.@_size;
+
+    // Creates a BoolArray of the specified size, every element of which is the specified value.
+    //
+    // # Parameters
+    // - `size` : The number of elements. If negative, the program aborts.
+    // - `value` : The value of every element
+    fill : I64 -> Bool -> BoolArray;
+    fill = |size, value| (
+        if size < 0 { undefined("[BoolArray::fill] The size is negative.") };
+        let words = (size + 63).shift_right(6);
+        if !value { BoolArray { _buf : Array::fill(words, 0_U64), _size : size } };
+        let buf = Array::fill(words, 0xFFFFFFFFFFFFFFFF_U64);
+        let rest = size.bit_and(63);
+        let buf = if rest == 0 { buf } else { buf.set(words - 1, _low_bits(rest)) };
+        BoolArray { _buf : buf, _size : size }
     );
 
-    // Creates a new BoolArray.
-    // 
+    // Sets the element at the specified index.
+    //
     // # Parameters
-    // - `size` : The size of the BoolArray in bits. It will be rounded up to the nearest multiple of 64.
+    // - `index` : The index of the element to set. If out of range, the program aborts.
+    // - `value` : The value to set
+    // - `self` : The target BoolArray
+    set : I64 -> Bool -> BoolArray -> BoolArray;
+    set = |index, value, self| (
+        if !self._contains_index(index) { undefined("[BoolArray::set] The index is out of range.") };
+        let bit = index.bit_and(63);
+        self.mod__buf(Array::mod(index.shift_right(6), _assign_bit(bit, value)))
+    );
+
+    // Gets the element at the specified index.
+    //
+    // # Parameters
+    // - `index` : The index of the element to get. If out of range, the program aborts.
+    // - `self` : The target BoolArray
+    @ : I64 -> BoolArray -> Bool;
+    @ = |index, self| (
+        if !self._contains_index(index) { undefined("[BoolArray::@] The index is out of range.") };
+        _read_bit(index.bit_and(63), self.@_buf.@(index.shift_right(6)))
+    );
+
+    // Checks whether `index` is the index of an element of the BoolArray.
+    //
+    // The callers stop the program on a failed check with a literal message. With a message built at
+    // run time, `--no-runtime-check` leaves the check in the code (tttmmmyyyy/fixlang#993).
+    //
+    // # Parameters
+    // - `index` : The index to check
+    // - `self` : The target BoolArray
+    _contains_index : I64 -> BoolArray -> Bool;
+    _contains_index = |index, self| 0 <= index && index < self.@_size;
+
+    // The word whose `count` low bits are 1 and the other bits are 0.
+    //
+    // # Parameters
+    // - `count` : The number of 1 bits, from 0 to 63
+    _low_bits : I64 -> U64;
+    _low_bits = |count| 1_U64.shift_left(count.u64) - 1_U64;
+
+    // Reads the bit at the position `bit` of `word`.
+    //
+    // # Parameters
+    // - `bit` : The position of the bit in the word, from 0 to 63
+    // - `word` : The word
+    _read_bit : I64 -> U64 -> Bool;
+    _read_bit = |bit, word| word.shift_right(bit.u64).bit_and(1_U64) != 0_U64;
+
+    // Sets the bit at the position `bit` of `word` to `value`.
+    //
+    // # Parameters
+    // - `bit` : The position of the bit in the word, from 0 to 63
+    // - `value` : The value of the bit
+    // - `word` : The word
+    _assign_bit : I64 -> Bool -> U64 -> U64;
+    _assign_bit = |bit, value, word| (
+        let mask = 1_U64.shift_left(bit.u64);
+        if value { word.bit_or(mask) } else { word.bit_and(mask.bit_not) }
+    );
+
+    // Deprecated. Gets the number of elements rounded up to a multiple of 64.
+    //
+    // # Parameters
+    // - `self` : The target BoolArray
+    get_size : BoolArray -> I64;
+    get_size = |self| self.@_buf.@size * 64;
+    DEPRECATED[get_size, "Use `BoolArray::@size` instead. Unlike `get_size`, which rounds the number of elements up to a multiple of 64, `@size` returns the size given when the BoolArray was created."];
+
+    // Deprecated. Creates a BoolArray whose elements are all false, rounding the size up to a multiple of 64.
+    //
+    // # Parameters
+    // - `size` : The number of elements before the rounding. If negative, the program aborts.
     make : I64 -> BoolArray;
     make = |size| (
-        let buf_size = (size + 63) / 64;
-        BoolArray { buf: Array::fill(buf_size, 0_U64) }
+        if size < 0 { undefined("[BoolArray::make] The size is negative.") };
+        fill((size + 63).bit_and(-64), false)
     );
+    DEPRECATED[make, "Use `BoolArray::fill(size, false)` instead. `make` rounds the size up to a multiple of 64, and `fill` keeps the size as given."];
 
-    // Fills the specified BoolArray with true values.
+    // Deprecated. Sets every element to true.
     //
     // # Parameters
     // - `self` : The target BoolArray
     fill_true : BoolArray -> BoolArray;
-    fill_true = |self| (
-        let buf = self.@buf;
-        let buf = Iterator::range(0, buf.@size).fold(buf, |i, buf|
-            buf.set(i, 0xFFFFFFFFFFFFFFFF_U64)
-        );
-        BoolArray { buf: buf }
-    );
+    fill_true = |self| fill(self.@size, true);
+    DEPRECATED[fill_true, "Use `BoolArray::fill(size, true)` instead."];
+}
 
-    // Sets the bit at the specified index.
-    // 
-    // # Parameters
-    // - `index` : The index of the bit to set
-    // - `value` : The value to set (true or false)
-    // - `self` : The target BoolArray
-    set : I64 -> Bool -> BoolArray -> BoolArray;
-    set = |index, value, self| (
-        let buf = self.@buf;
-        let buf_index = index / 64;
-        let bit_index = index % 64;
-        let flags = buf.@(buf_index);
-        let mask = 1_U64.shift_left(bit_index.u64);
-        let flags = if value {
-            flags.bit_or(mask)
-        } else {
-            flags.bit_and(mask.bit_not)
-        };
-        let buf = buf.set(buf_index, flags);
-        BoolArray { buf: buf }
-    );
-
-    // Gets the bit at the specified index.
-    // 
-    // # Parameters
-    // - `index` : The index of the bit to get
-    // - `self` : The target BoolArray
-    @ : I64 -> BoolArray -> Bool;
-    @ = |index, self| (
-        let buf_index = index / 64;
-        let bit_index = index % 64;
-        let flags = self.@buf.@(buf_index);
-        let mask = 1_U64.shift_left(bit_index.u64);
-        flags.bit_and(mask) != 0_U64
+impl BoolArray : Indexable {
+    type Elem BoolArray = Bool;
+    type Index BoolArray = I64;
+    act_at_index = |index, f, self| (
+        if !self._contains_index(index) { undefined("[BoolArray::act_at_index] The index is out of range.") };
+        let bit = index.bit_and(63);
+        self.act__buf(Array::act(index.shift_right(6), |word|
+            f(_read_bit(bit, word)).map(|value| _assign_bit(bit, value, word))
+        ))
     );
 }
