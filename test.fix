@@ -33,9 +33,11 @@ test_fill = (
 test_set : IO ();
 test_set = (
     sizes.to_iter.fold_m((), |n, _| (
-        // Set the elements whose indices are multiples of 3, then clear the multiples of 6.
+        // Set the elements whose indices are multiples of 3, then clear the multiples of 6, and clear
+        // the elements at `3k + 1`, which are already false.
         let ba = range_step(0, n, 3).fold(BoolArray::fill(n, false), |i, ba| ba.set(i, true));
         let ba = range_step(0, n, 6).fold(ba, |i, ba| ba.set(i, false));
+        let ba = range_step(1, n, 3).fold(ba, |i, ba| ba.set(i, false));
         range(0, n).fold_m((), |i, _| (
             let expected = i % 3 == 0 && i % 6 != 0;
             assert_eq(|_|"set " + n.to_string + " " + i.to_string, ba.@(i), expected)
